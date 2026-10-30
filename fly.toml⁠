@@ -1,0 +1,18 @@
+app = "solana-sniper-bot"
+primary_region = "sin" # Region Singapore (terdekat dari Indonesia)
+
+[build]
+  builder = "paketobuildpacks/builder:base"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 8080
+  [[services.ports]]
+    port = 8080
