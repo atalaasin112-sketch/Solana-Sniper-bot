@@ -1,20 +1,12 @@
-# fly.toml app configuration file generated for solana-sniper-bot-u2stpw on 2026-10-30T17:44:13Z
+# fly.toml app configuration file generated for solana-sniper-bot-jubhlg on 2026-10-31T09:13:05Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'solana-sniper-bot-u2stpw'
+app = 'solana-sniper-bot-jubhlg'
 primary_region = 'sin'
 
 [build]
-
-[http_service]
-  internal_port = 8080
-  force_https = true
-  auto_stop_machines = 'stop'
-  auto_start_machines = true
-  min_machines_running = 0
-  processes = ['app']
 
 [[vm]]
   memory = '1gb'
